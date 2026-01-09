@@ -50,7 +50,6 @@ def recording_callback(in_data, frame_count, time_info, status):
     q.put(in_data)
     return (in_data, pyaudio.paContinue)
 
-LastEndD = 0 # 上一段检测到的语音的结束位置在临时数据中的位置
 def record():
     p = pyaudio.PyAudio()
     # 检测系统扬声器
@@ -91,8 +90,8 @@ def record():
         speeches = detect_voice_activity(temp) # 检测语音活动
         
         if len(speeches) == 0: # 没有检测到语音
-            if Recording: # 如果之前处于录音状态
-                Recording = False # 停止录音
+            if Recording:
+                Recording = False
                 alldata = np.concatenate((alldata,temp), axis=0) # 合并录音数据
                 get_audio_text(alldata) # 处理录音数据
 
@@ -100,34 +99,50 @@ def record():
             alldata = np.array([],np.float32)
             data = b''
             temp = np.array([],np.float32)
-            LastEndD = 0
 
         elif len(speeches) == 1: # 检测到一段语音
-            Recording = True # 继续录音
+            Recording = True
             start = int(speeches[0]['start']) 
             end = int(speeches[0]['end'])
 
-            if start + LastEndD < 8000:
+            if start < 8000:
                 # 这是一句话
                 alldata = np.concatenate((alldata,temp[:end]), axis=0)
                 temp = temp[end:]
-                get_audio_text(alldata)
+                # get_audio_text(alldata)
+                # 重置变量
                 data = b''
-                LastEndD = len(temp)
             else:
                 # 这是两句话
+                # 先处理前一句话
+                if len(alldata) > 0:
+                    get_audio_text(alldata)
+                
                 alldata = temp[:end]
                 temp = temp[end:]
-                get_audio_text(alldata)
                 data = b''
-                LastEndD = len(temp) - end
+
         elif len(speeches) == 2:
             Recording = True
-            temp = alldata[int(speeches[0]['end']):]
-            alldata = alldata[:int(speeches[0]['end'])]
-            data = b''
-            get_audio_text(alldata)
+            start2 = int(speeches[0]['start']) 
+            end2 = int(speeches[0]['end'])
+
+            # 获取并添加第一句话之后再处理
+            if start2 < 8000:
+                # 这是一句话
+                alldata = np.concatenate((alldata,temp[:end2]), axis=0)
+                get_audio_text(alldata)
+            else:
+                # 这是两句话
+                if len(alldata) > 0:
+                    get_audio_text(alldata)
+                alldata = temp[start2:end2]
+                get_audio_text(alldata)
+
+
+            # 重置变量，保留第二句话的数据
+            temp = temp[end2:]
             alldata = np.array([],np.float32)
-            LastEndD = 0
+            data = b''
 
 record()
