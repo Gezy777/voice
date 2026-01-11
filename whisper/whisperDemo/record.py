@@ -1,5 +1,6 @@
 import pyaudio
 import queue
+import config
 
 # 选择监听的音频设备
 input_device_index = -1
@@ -11,16 +12,16 @@ CHANNELS = 1
 RATE = 16000
 
 # 设定的说话间隔时间
-Internal = 16000
+Internal = config.Internal
 
 # 指定音频转文字模型
-VoiceToWordModel = 'small'
+VoiceToWordModel = config.VoiceToWordModel
 
 # 源语言
-SourceLanguage = "ja"
+SourceLanguage = config.SourceLanguage
 
 # 目的语言
-TargetLanguage = "zh"
+TargetLanguage = config.TargetLanguage
 
 # 载入语音活动检测模型
 import torch
