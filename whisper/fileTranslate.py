@@ -7,7 +7,7 @@ import whisper
 import torch
 import config
 
-fileName = "/home/zxk/Documents/test.wav"  # 替换为实际音频文件路径
+fileName = "./test.wav"  # 替换为实际音频文件路径
 
 model = whisper.load_model(config.VoiceToWordModel)
 

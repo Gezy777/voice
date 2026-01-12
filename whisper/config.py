@@ -2,7 +2,7 @@
 Internal = 16000
 
 # 指定音频转文字模型
-VoiceToWordModel = 'small'
+VoiceToWordModel = 'medium'
 
 # 源语言
 SourceLanguage = "ja"
