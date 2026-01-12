@@ -27,16 +27,9 @@ TargetLanguage = config.TargetLanguage
 import torch
 torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
 vad_model, funcs = torch.hub.load(
-            repo_or_dir="snakers4/silero-vad", model="silero_vad", trust_repo=True
+            repo_or_dir="../silero-vad", model="silero_vad", source="local"
         )
 detect_speech = funcs[0]
-# print(torch.cuda.is_available())   # True 表示 GPU 可用
-# if torch.cuda.is_available():
-#     device = torch.device("cpu")
-#     print("使用 GPU:", torch.cuda.get_device_name(0))
-# else:
-#     device = torch.device("cpu")
-#     print("使用 CPU")
 
 # 调用翻译API
 import requests
@@ -96,14 +89,14 @@ def record():
     p = pyaudio.PyAudio()
     # 检测系统扬声器
     # 检测系统中所有可以监听的音频设备
-    for i in range(p.get_device_count()):
-        info = p.get_device_info_by_index(i)
-        # print(info)
-        if "CABLE" in info["name"] and info["maxInputChannels"] > 0:
-            print("USE THIS:", i, info["name"])
+    # for i in range(p.get_device_count()):
+    #     info = p.get_device_info_by_index(i)
+    #     # print(info)
+    #     # if "CABLE" in info["name"] and info["maxInputChannels"] > 0:
+    #     #     print("USE THIS:", i, info["name"])
 
     # 指定监听的音频源，监听的是系统音频输出
-    input_device_index = 3
+    input_device_index = 12
     # 获取音频流
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,

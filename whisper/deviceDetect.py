@@ -1,6 +1,8 @@
 import config
 import pyaudio
 
+# linux选pulse
+
 def detect_audio_devices():
     p = pyaudio.PyAudio()
 
@@ -9,5 +11,4 @@ def detect_audio_devices():
         info = p.get_device_info_by_index(i)
         print(f"检测到的音频设备{info['index']}: {info['name']} ")
 
-if __name__ == "__main__":
-    detect_audio_devices()
+detect_audio_devices()
