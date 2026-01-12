@@ -52,16 +52,26 @@ model = whisper.load_model(VoiceToWordModel)
 # model = model.to(device)
 options = whisper.DecodingOptions(language=None, task="transcribe", fp16=torch.cuda.is_available())
 
+SERVER = "http://192.168.186.31:8000/translate"
 # 翻译音频并输出中文
 def get_audio_text(audio_data):
-    start_time = time.time()
-    audio = whisper.pad_or_trim(audio_data)
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    result = whisper.decode(model, mel, options)
-    end_time = time.time()
-    print("原文:" + result.text)
-    print("翻译结果:" + cc.convert(mymemory_translate(result.text)))
-    print(f"翻译耗时:{end_time - start_time:.3f}s")
+
+    resp = requests.post(
+        SERVER,
+        json={"audio": audio_data.tolist()}
+    )
+    print("原文:" + resp.json()["origin"])
+    print("翻译结果:" + mymemory_translate(resp.json()["translated"]))
+    print("翻译耗时:" + str(resp.json()["cost"]) + "s")
+
+    # start_time = time.time()
+    # audio = whisper.pad_or_trim(audio_data)
+    # mel = whisper.log_mel_spectrogram(audio).to(model.device)
+    # result = whisper.decode(model, mel, options)
+    # end_time = time.time()
+    # print("原文:" + result.text)
+    # print("翻译结果:" + cc.convert(mymemory_translate(result.text)))
+    # print(f"翻译耗时:{end_time - start_time:.3f}s")
 
 
 # 创建队列用于存储录音数据
