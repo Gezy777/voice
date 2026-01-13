@@ -9,3 +9,7 @@ SourceLanguage = "ja"
 
 # 目的语言
 TargetLanguage = "zh"
+
+# 指定翻译服务器
+SERVER = "http://192.168.186.31:8000/translate"
+

@@ -1,6 +1,10 @@
 import pyaudio
 import queue
 import config
+import torch
+import requests
+import numpy as np
+
 
 # 选择监听的音频设备
 input_device_index = -1
@@ -14,17 +18,16 @@ RATE = 16000
 # 设定的说话间隔时间
 Internal = config.Internal
 
-# 指定音频转文字模型
-VoiceToWordModel = config.VoiceToWordModel
-
 # 源语言
 SourceLanguage = config.SourceLanguage
 
 # 目的语言
 TargetLanguage = config.TargetLanguage
 
-# 载入语音活动检测模型
-import torch
+# 指定翻译服务器
+server = config.SERVER
+
+# 载入语音活动检测函数
 torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
 vad_model, funcs = torch.hub.load(
             repo_or_dir="../silero-vad", model="silero_vad", source="local"
@@ -32,7 +35,6 @@ vad_model, funcs = torch.hub.load(
 detect_speech = funcs[0]
 
 # 调用翻译API
-import requests
 def mymemory_translate(text, source=SourceLanguage, target=TargetLanguage):
     url = "https://api.mymemory.translated.net/get"
     params = {
@@ -42,40 +44,20 @@ def mymemory_translate(text, source=SourceLanguage, target=TargetLanguage):
     r = requests.get(url, params=params)
     return r.json()["responseData"]["translatedText"]
 
-
-import whisper
-import opencc
-import numpy as np
-import time
-cc = opencc.OpenCC('t2s')
-model = whisper.load_model(VoiceToWordModel)
-# model = model.to(device)
-options = whisper.DecodingOptions(language=None, task="transcribe", fp16=torch.cuda.is_available())
-
-SERVER = "http://192.168.186.31:8000/translate"
-# 翻译音频并输出中文
-def get_audio_text(audio_data):
-
+# 从服务器端获取音频转文字结果
+def voiceTotext(audio_data):
     resp = requests.post(
-        SERVER,
+        server,
         json={"audio": audio_data.tolist()}
     )
     print("原文:" + resp.json()["origin"])
     print("翻译结果:" + mymemory_translate(resp.json()["translated"]))
     print("翻译耗时:" + str(resp.json()["cost"]) + "s")
 
-    # start_time = time.time()
-    # audio = whisper.pad_or_trim(audio_data)
-    # mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    # result = whisper.decode(model, mel, options)
-    # end_time = time.time()
-    # print("原文:" + result.text)
-    # print("翻译结果:" + cc.convert(mymemory_translate(result.text)))
-    # print(f"翻译耗时:{end_time - start_time:.3f}s")
 
-
-# 创建队列用于存储录音数据
-q = queue.Queue()
+# 翻译音频并输出中文
+def get_audio_text(audio_data):
+    voiceTotext(audio_data)
 
 # 语音活动检测函数 
 # 合并相近的语音片段
@@ -85,28 +67,42 @@ def detect_voice_activity(audio):
     ) # 检测语音活动
     print(speeches,len(audio)) # 打印检测到的语音片段和音频长度
 
-    # if len(speeches) == 2: # 如果检测到两段语音，检查它们是否相近
-    #     if speeches[1]['start'] - speeches[0]['end'] < 8000:
-    #         return [{"start": speeches[0]['start'], "end": speeches[1]['end']}]
     return speeches
+
+
+# 创建队列用于存储录音数据
+q = queue.Queue()
 
 def recording_callback(in_data, frame_count, time_info, status):
     # 将录制的数据存入队列
     q.put(in_data)
     return (in_data, pyaudio.paContinue)
 
+def joint_sentences(start, end, isJoint, alldata, i, temp):
+    if isJoint:
+        # 这是一句话
+        alldata = np.concatenate((alldata,temp[start:end]), axis=0)
+
+    else:
+        # 这是两句话
+        # 先处理前一句话
+        if len(alldata) > 0:
+            print(f"这是第{i}句话")
+            i += 1
+            get_audio_text(alldata)
+        alldata = temp[start:end]
+
+    print(f"这是第{i}句话")
+    get_audio_text(alldata)
+    LastEnd = len(temp[end:])
+    return alldata, i, LastEnd
+
 def record():
     p = pyaudio.PyAudio()
-    # 检测系统扬声器
-    # 检测系统中所有可以监听的音频设备
-    # for i in range(p.get_device_count()):
-    #     info = p.get_device_info_by_index(i)
-    #     # print(info)
-    #     # if "CABLE" in info["name"] and info["maxInputChannels"] > 0:
-    #     #     print("USE THIS:", i, info["name"])
 
     # 指定监听的音频源，监听的是系统音频输出
     input_device_index = 12
+
     # 获取音频流
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,
@@ -125,11 +121,13 @@ def record():
     data = b'' # 存储从队列中获取的字节数据
     Recording = False # 录音状态标志
     LastEnd = 0 # 上一段录音的结束位
+    i = 1 # 第几句话
 
     while True:
         # 从队列中获取录音数据
         while len(data) < 2 * RATE * 2: # 确保获取到足够1秒的音频数据
             data += q.get() # 获取队列中的数据
+        
         # 将获取到的字节数据转换为numpy数组并归一化
         temp = np.concatenate((temp, np.frombuffer(data, np.int16).flatten().astype(np.float32) / 32768.0), axis=0)
         
@@ -139,38 +137,18 @@ def record():
             if Recording:
                 Recording = False
                 if len(alldata) > 0:
+                    print(f"这是第{i}句话")
+                    i += 1
                     get_audio_text(alldata) # 处理录音数据
 
             # 重置变量
             alldata = np.array([],np.float32)
-            data = b''
-            temp = np.array([],np.float32)
 
         elif len(speeches) == 1: # 检测到一段语音
             Recording = True
             start = int(speeches[0]['start']) 
             end = int(speeches[0]['end'])
-
-            if start + LastEnd < Internal:
-                # 这是一句话
-                alldata = np.concatenate((alldata,temp[start:end]), axis=0)
-                LastEnd = len(temp[end:])
-                # get_audio_text(alldata)
-                # 重置变量
-                data = b''
-                temp = np.array([],np.float32)
-            else:
-                # 这是两句话
-                # 先处理前一句话
-                if len(alldata) > 0:
-                    get_audio_text(alldata)
-                
-                alldata = temp[start:end]
-                LastEnd = len(temp[end:])
-
-                # 重置变量
-                data = b''
-                temp = np.array([],np.float32)
+            alldata, i, LastEnd = joint_sentences(start, end, start + LastEnd < Internal, alldata, i, temp)
 
         elif len(speeches) == 2:
             Recording = True
@@ -182,42 +160,20 @@ def record():
             # 获取并添加第一句话之后再处理
             if start + LastEnd < Internal:
                 # 这是一句话
-                alldata = np.concatenate((alldata,temp[start:end]), axis=0)
-                if start2 - end < Internal:
-                    alldata = np.concatenate((alldata, temp[start2:end2]), axis=0)
-                    LastEnd = len(temp[end2:])
-                    
-                    # 重置变量
-                    data = b''
-                    temp = np.array([],np.float32)
-                else:
-                    get_audio_text(alldata)
-                    alldata = temp[start2:end2]
-                    LastEnd = len(temp[end2:])
-
-                    # 重置变量
-                    data = b''
-                    temp = np.array([],np.float32)
+                alldata = np.concatenate((alldata, temp[start:end]), axis=0)
+                alldata, i, LastEnd = joint_sentences(start2, end2, start2 - end < Internal, alldata, i, temp)
 
             else:
                 # 这是两句话
                 if len(alldata) > 0:
+                    print(f"这是第{i}句话")
+                    i += 1
                     get_audio_text(alldata)
                 alldata = temp[start:end]
-                if start2 - end < Internal:
-                    alldata = np.concatenate((alldata, temp[start2:end2]), axis=0)
-                    LastEnd = len(temp[end2:])
-                    
-                    # 重置变量
-                    data = b''
-                    temp = np.array([],np.float32)
-                else:
-                    get_audio_text(alldata)
-                    alldata = temp[start2:end2]
-                    LastEnd = len(temp[end2:])
-
-                    # 重置变量
-                    data = b''
-                    temp = np.array([],np.float32)
+                alldata, i, LastEnd = joint_sentences(start2, end2, start2 - end < Internal, alldata, i, temp)
+        
+        # 清空data和temp，继续录音
+        data = b''
+        temp = np.array([],np.float32)
 
 record()
