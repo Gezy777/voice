@@ -11,9 +11,7 @@ app = FastAPI()
 
 # ===== 全局只加载一次 =====
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = whisper.load_model("medium").to(device)
-print(torch.cuda.is_available())
-cc = opencc.OpenCC("t2s")
+model = whisper.load_model("small").to(device)
 
 options = whisper.DecodingOptions(
     task="transcribe",
@@ -23,20 +21,6 @@ options = whisper.DecodingOptions(
 
 class AudioRequest(BaseModel):
     audio: list[float]   # 16kHz mono PCM
-
-# from modelscope.pipelines import pipeline
-# from modelscope.utils.constant import Tasks
-
-# translator = pipeline(
-#     task=Tasks.translation,
-#     model='damo/nlp_csanmt_translation_en2zh',
-#     device='cuda'
-# )
-
-# def en2zh(text):
-#     return translator(text)['translation']
-
-
 
 @app.post("/translate")
 def translate_audio(req: AudioRequest):
