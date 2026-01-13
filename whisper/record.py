@@ -45,7 +45,7 @@ def mymemory_translate(text, source=SourceLanguage, target=TargetLanguage):
     return r.json()["responseData"]["translatedText"]
 
 # 从服务器端获取音频转文字结果
-def voiceTotext(audio_data):
+def voice_to_text_server(audio_data):
     resp = requests.post(
         server,
         json={"audio": audio_data.tolist()}
@@ -57,7 +57,8 @@ def voiceTotext(audio_data):
 
 # 翻译音频并输出中文
 def get_audio_text(audio_data):
-    voiceTotext(audio_data)
+
+    voice_to_text_server(audio_data)
 
 # 语音活动检测函数 
 # 合并相近的语音片段
@@ -101,7 +102,7 @@ def record():
     p = pyaudio.PyAudio()
 
     # 指定监听的音频源，监听的是系统音频输出
-    input_device_index = 12
+    input_device_index = 13
 
     # 获取音频流
     stream = p.open(format=FORMAT,
@@ -128,6 +129,8 @@ def record():
         while len(data) < 2 * RATE * 2: # 确保获取到足够1秒的音频数据
             data += q.get() # 获取队列中的数据
         
+        # print(type(data))
+
         # 将获取到的字节数据转换为numpy数组并归一化
         temp = np.concatenate((temp, np.frombuffer(data, np.int16).flatten().astype(np.float32) / 32768.0), axis=0)
         
