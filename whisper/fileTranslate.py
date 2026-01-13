@@ -4,7 +4,6 @@
 ## 3. 对检测到的语音活动段进行翻译
 ## 4. 输出翻译结果到文本文件
 import whisper
-import torch
 import config
 
 fileName = "./test.wav"  # 替换为实际音频文件路径
@@ -12,6 +11,7 @@ fileName = "./test.wav"  # 替换为实际音频文件路径
 model = whisper.load_model(config.VoiceToWordModel)
 
 result = model.transcribe(fileName, task="translate")
+
 print(result["text"])
 
 

@@ -3,7 +3,7 @@ import time
 import torch
 import numpy as np
 import whisper
-import opencc
+import config
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -11,7 +11,7 @@ app = FastAPI()
 
 # ===== 全局只加载一次 =====
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = whisper.load_model("small").to(device)
+model = whisper.load_model(config.VoiceToWordModel).to(device)
 
 options = whisper.DecodingOptions(
     task="transcribe",

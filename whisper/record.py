@@ -77,7 +77,7 @@ q = queue.Queue()
 def recording_callback(in_data, frame_count, time_info, status):
     # 将录制的数据存入队列
     q.put(in_data)
-    return (in_data, pyaudio.paContinue)
+    return (None, pyaudio.paContinue)
 
 def joint_sentences(start, end, isJoint, alldata, i, temp):
     if isJoint:
