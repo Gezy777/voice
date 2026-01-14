@@ -3,3 +3,4 @@
 tencentcloud-speech-sdk-python
 __pycache__/
 .env
+*.bat

@@ -11,6 +11,7 @@ app = FastAPI()
 
 # ===== 全局只加载一次 =====
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
 model = whisper.load_model(config.VoiceToWordModel).to(device)
 
 options = whisper.DecodingOptions(

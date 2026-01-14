@@ -2,7 +2,7 @@
 Internal = 16000
 
 # 指定音频转文字模型
-VoiceToWordModel = 'medium'
+VoiceToWordModel = 'small'
 
 # 源语言
 SourceLanguage = "ja"
@@ -11,5 +11,6 @@ SourceLanguage = "ja"
 TargetLanguage = "zh"
 
 # 指定翻译服务器
-SERVER = "http://192.168.186.31:8000/translate"
+SERVER_LINUX = "http://192.168.186.31:8000/translate"
+SERVER_WINDOWS = "http://localhost:8000/translate"
 

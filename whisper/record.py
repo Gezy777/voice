@@ -25,7 +25,7 @@ SourceLanguage = config.SourceLanguage
 TargetLanguage = config.TargetLanguage
 
 # 指定翻译服务器
-server = config.SERVER
+server = config.SERVER_WINDOWS
 
 # 载入语音活动检测函数
 torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
