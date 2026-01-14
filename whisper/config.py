@@ -3,7 +3,7 @@ Internal = 16000
 
 # 指定音频转文字模型
 # 可选模型有：tiny, base, small, medium, large
-VoiceToWordModel = 'small'
+VoiceToWordModel = 'tiny'
 
 # 源语言
 SourceLanguage = "ja"

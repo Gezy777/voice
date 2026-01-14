@@ -18,14 +18,25 @@ RATE = 16000
 # 设定的说话间隔时间
 Internal = config.Internal
 
+# 指定翻译服务器
+server = config.SERVER_WINDOWS
+
 # 源语言
 SourceLanguage = config.SourceLanguage
 
 # 目的语言
 TargetLanguage = config.TargetLanguage
 
-# 指定翻译服务器
-server = config.SERVER_WINDOWS
+from transformers import MarianMTModel, MarianTokenizer
+
+model_name = "Helsinki-NLP/opus-mt-en-zh"
+tokenizer = MarianTokenizer.from_pretrained(model_name)
+model = MarianMTModel.from_pretrained(model_name)
+
+def local_translate(text):
+    inputs = tokenizer(text, return_tensors="pt", padding=True)
+    outputs = model.generate(**inputs)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 # 载入语音活动检测函数
 torch.hub._validate_not_a_forked_repo = lambda a, b, c: True
@@ -34,16 +45,6 @@ vad_model, funcs = torch.hub.load(
         )
 detect_speech = funcs[0]
 
-# 调用翻译API
-def mymemory_translate(text, source=SourceLanguage, target=TargetLanguage):
-    url = "https://api.mymemory.translated.net/get"
-    params = {
-        "q": text,
-        "langpair": f"{source}|{target}"
-    }
-    r = requests.get(url, params=params)
-    return r.json()["responseData"]["translatedText"]
-
 # 从服务器端获取音频转文字结果
 def voice_to_text_server(audio_data):
     resp = requests.post(
@@ -51,7 +52,7 @@ def voice_to_text_server(audio_data):
         json={"audio": audio_data.tolist()}
     )
     print("原文:" + resp.json()["origin"])
-    print("翻译结果:" + mymemory_translate(resp.json()["translated"]))
+    print("翻译结果:" + local_translate(resp.json()["translated"]))
     print("翻译耗时:" + str(resp.json()["cost"]) + "s")
 
 
