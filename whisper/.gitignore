@@ -1,3 +1,4 @@
 *.pyc
 *.sh
 tencentcloud-speech-sdk-python
+__pycache__/
