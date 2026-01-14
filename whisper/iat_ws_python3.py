@@ -104,6 +104,7 @@ def on_message(ws, message):
                 for w in i["cw"]:
                     result += w["w"]
             print("sid:%s call success!,data is:%s" % (sid, json.dumps(data, ensure_ascii=False)))
+            print(result)
     except Exception as e:
         print("receive msg,but parse exception:", e)
 
