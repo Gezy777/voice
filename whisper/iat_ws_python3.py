@@ -262,7 +262,7 @@ def on_open(ws):
             p = pyaudio.PyAudio()
 
             # 指定监听的音频源，监听的是系统音频输出
-            input_device_index = 13
+            input_device_index = 12 #WINDOWS-13
 
             # 获取音频流
             stream = p.open(format=FORMAT,
@@ -348,11 +348,16 @@ def on_open(ws):
     thread.start_new_thread(run, ())
 
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv() 
+
 if __name__ == "__main__":
     # 测试时候在此处正确填写相关信息即可运行
     time1 = datetime.now()
-    wsParam = Ws_Param(APPID='522ba1a5', APISecret='ZTk2ZTQ3ZjRkNDVkMTZmZGQ5NDQ1NzM3',
-                       APIKey='a3dfa430a793a7c84c9d44cf48196b33',
+    wsParam = Ws_Param(APPID=os.getenv("IFLYTEK_APPID"), APISecret=os.getenv("IFLYTEK_APISecret"),
+                       APIKey=os.getenv("IFLYTEK_APIKey"),
                        AudioFile=r'./test.wav')
     websocket.enableTrace(False)
     wsUrl = wsParam.create_url()
