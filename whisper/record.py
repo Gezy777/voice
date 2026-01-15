@@ -3,6 +3,8 @@ import queue
 import config
 import torch
 import requests
+import time
+import google_translate as translate
 import numpy as np
 
 
@@ -95,7 +97,7 @@ def joint_sentences(start, end, isJoint, alldata, i, temp):
         alldata = temp[start:end]
 
     print(f"这是第{i}句话")
-    get_audio_text(alldata)
+    # get_audio_text(alldata)
     LastEnd = len(temp[end:])
     return alldata, i, LastEnd
 
@@ -103,7 +105,7 @@ def record():
     p = pyaudio.PyAudio()
 
     # 指定监听的音频源，监听的是系统音频输出
-    input_device_index = 13
+    input_device_index = 8
 
     # 获取音频流
     stream = p.open(format=FORMAT,
