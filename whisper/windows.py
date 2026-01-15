@@ -6,6 +6,7 @@ import requests
 import time
 import google_translate as translate
 import numpy as np
+import whisper
 from transformers import MarianMTModel, MarianTokenizer
 
 # 配置录音参数
@@ -36,15 +37,37 @@ vad_model, funcs = torch.hub.load(
         )
 detect_speech = funcs[0]
 
+# 模型设定
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
+model = whisper.load_model(config.VoiceToWordModel).to(device)
+
+options = whisper.DecodingOptions(
+    task="transcribe",
+    language=None,
+    fp16=torch.cuda.is_available()
+)
+
+def translate_audio(audio_data):
+    start_time = time.time()
+    # === 30s 窗口 ===
+    audio = whisper.pad_or_trim(audio_data)
+    mel = whisper.log_mel_spectrogram(audio).to(device)
+    result = whisper.decode(model, mel, options)
+    translated = result.text
+    end_time = time.time()
+    print(f"语音转文字耗时{end_time - start_time}")
+    return translated
+
+
 # 从服务器端获取音频转文字结果
 def voice_to_text_server(audio_data):
-    resp = requests.post(
-        server,
-        json={"audio": audio_data.tolist()}
-    )
-    print("原文:" + resp.json()["origin"])
-    print("翻译结果:" + translate.google_web_translate(resp.json()["translated"]))
-    print("翻译耗时:" + str(resp.json()["cost"]) + "s")
+    s = time.time()
+    text = translate_audio(audio_data)
+    print("原文:" + text)
+    print("翻译结果:" + translate.google_web_translate(text))
+    e = time.time()
+    print(f"翻译耗时:{e - s}s")
 
 
 # 翻译音频并输出中文
