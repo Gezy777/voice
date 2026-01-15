@@ -6,10 +6,7 @@ import requests
 import time
 import google_translate as translate
 import numpy as np
-
-
-# 选择监听的音频设备
-input_device_index = -1
+from transformers import MarianMTModel, MarianTokenizer
 
 # 配置录音参数
 CHUNK = 1024
@@ -29,7 +26,8 @@ SourceLanguage = config.SourceLanguage
 # 目的语言
 TargetLanguage = config.TargetLanguage
 
-from transformers import MarianMTModel, MarianTokenizer
+# 监听的音频设备
+InputDeviceIndex = config.InputDeviceIndex
 
 model_name = "Helsinki-NLP/opus-mt-en-zh"
 tokenizer = MarianTokenizer.from_pretrained(model_name)
@@ -91,13 +89,13 @@ def joint_sentences(start, end, isJoint, alldata, i, temp):
         # 这是两句话
         # 先处理前一句话
         if len(alldata) > 0:
-            print(f"这是第{i}句话")
+            print(f"第{i}句话翻译完成")
             i += 1
             get_audio_text(alldata)
         alldata = temp[start:end]
 
     print(f"这是第{i}句话")
-    # get_audio_text(alldata)
+    # # get_audio_text(alldata)
     LastEnd = len(temp[end:])
     return alldata, i, LastEnd
 
@@ -105,7 +103,7 @@ def record():
     p = pyaudio.PyAudio()
 
     # 指定监听的音频源，监听的是系统音频输出
-    input_device_index = 8
+    input_device_index = InputDeviceIndex
 
     # 获取音频流
     stream = p.open(format=FORMAT,
@@ -132,8 +130,6 @@ def record():
         while len(data) < 2 * RATE * 2: # 确保获取到足够1秒的音频数据
             data += q.get() # 获取队列中的数据
         
-        # print(type(data))
-
         # 将获取到的字节数据转换为numpy数组并归一化
         temp = np.concatenate((temp, np.frombuffer(data, np.int16).flatten().astype(np.float32) / 32768.0), axis=0)
         
@@ -143,7 +139,8 @@ def record():
             if Recording:
                 Recording = False
                 if len(alldata) > 0:
-                    print(f"这是第{i}句话")
+                    print(f"第{i}句话翻译完成")
+                    # print(f"这是第{i}句话")
                     i += 1
                     get_audio_text(alldata) # 处理录音数据
 
@@ -172,7 +169,7 @@ def record():
             else:
                 # 这是两句话
                 if len(alldata) > 0:
-                    print(f"这是第{i}句话")
+                    print(f"第{i}句话翻译完成")
                     i += 1
                     get_audio_text(alldata)
                 alldata = temp[start:end]
