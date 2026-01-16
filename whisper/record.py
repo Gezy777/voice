@@ -3,10 +3,8 @@ import queue
 import config
 import torch
 import requests
-import time
 import google_translate as translate
 import numpy as np
-from transformers import MarianMTModel, MarianTokenizer
 
 # 配置录音参数
 CHUNK = 1024

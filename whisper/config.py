@@ -6,12 +6,12 @@ Internal = 16000
 VoiceToWordModel = 'tiny'
 
 # 源语言
-SourceLanguage = "ja"
+SourceLanguage = "en"
 
 # 目的语言
-TargetLanguage = "zh"
+TargetLanguage = "zh-CN"
 
-# 坚听的音频设备
+# 监听的音频设备
 # windows一般是13，linux一般是pulse
 InputDeviceIndex = 13
 

@@ -1,13 +1,12 @@
+# 在 Windows 系统上使用 Whisper 进行实时语音转文字和翻译
 import pyaudio
 import queue
 import config
 import torch
-import requests
 import time
 import google_translate as translate
 import numpy as np
 import whisper
-from transformers import MarianMTModel, MarianTokenizer
 
 # 配置录音参数
 CHUNK = 1024
@@ -42,12 +41,14 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 model = whisper.load_model(config.VoiceToWordModel).to(device)
 
+# whisper解码选项
 options = whisper.DecodingOptions(
     task="transcribe",
     language=None,
     fp16=torch.cuda.is_available()
 )
 
+# 音频转文字函数
 def translate_audio(audio_data):
     start_time = time.time()
     # === 30s 窗口 ===
@@ -67,7 +68,7 @@ def voice_to_text_server(audio_data):
     print("原文:" + text)
     print("翻译结果:" + translate.google_web_translate(text))
     e = time.time()
-    print(f"翻译耗时:{e - s}s")
+    print(f"总耗时:{e - s}s")
 
 
 # 翻译音频并输出中文
