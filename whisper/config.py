@@ -1,5 +1,5 @@
 # 设定的说话间隔时间
-Internal = 16000
+Internal = 8000
 
 # 指定音频转文字模型
 # 可选模型有：tiny, base, small, medium, large

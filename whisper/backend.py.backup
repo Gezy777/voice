@@ -1,29 +1,8 @@
 from fastapi import FastAPI, WebSocket
 import time
-import json
-import uvicorn
-import threading
 import asyncio
-
-app = FastAPI()
-
-# 用来保存 WebSocket 连接
-ws_client = None
-loop = None
-
-@app.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
-    global ws_client
-    await ws.accept()  # 接受连接
-    ws_client = ws     # 保存连接对象
-    try:
-        while True:
-            msg = await ws.receive_text()  # 接收消息
-            print(f"收到客户端消息: {msg}")
-    except:
-        print("客户端断开连接")
-        ws_client = None
-
+import threading
+import json
 
 import pyaudio
 import queue
@@ -71,14 +50,14 @@ def voice_to_text_server(audio_data):
         "final": True,
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     }
-    send_in_thread(data)
+    yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
     print("原文:" + original_text)
     print("翻译结果:" + translated_text)
     print("翻译耗时:" + str(resp.json()["cost"]) + "s")
 
 # 翻译音频并输出中文
 def get_audio_text(audio_data):
-    # 调用服务器进行翻译
+    
     voice_to_text_server(audio_data)
 
 # 语音活动检测函数 
@@ -111,11 +90,11 @@ def joint_sentences(start, end, isJoint, alldata, i, temp):
         if len(alldata) > 0:
             print(f"第{i}句话翻译完成")
             i += 1
-            # 翻译并返回结果
             get_audio_text(alldata)
         alldata = temp[start:end]
 
     print(f"这是第{i}句话")
+    # # get_audio_text(alldata)
     LastEnd = len(temp[end:])
     return alldata, i, LastEnd
 
@@ -160,9 +139,9 @@ def record():
                 Recording = False
                 if len(alldata) > 0:
                     print(f"第{i}句话翻译完成")
+                    # print(f"这是第{i}句话")
                     i += 1
-                    # 处理录音数据并返回结果
-                    get_audio_text(alldata)
+                    get_audio_text(alldata) # 处理录音数据
 
             # 重置变量
             alldata = np.array([],np.float32)
@@ -171,9 +150,7 @@ def record():
             Recording = True
             start = int(speeches[0]['start']) 
             end = int(speeches[0]['end'])
-            result = joint_sentences(start, end, start + LastEnd < Internal, alldata, i, temp)
-            if isinstance(result, tuple):
-                alldata, i, LastEnd = result
+            alldata, i, LastEnd = joint_sentences(start, end, start + LastEnd < Internal, alldata, i, temp)
 
         elif len(speeches) == 2:
             Recording = True
@@ -186,54 +163,26 @@ def record():
             if start + LastEnd < Internal:
                 # 这是一句话
                 alldata = np.concatenate((alldata, temp[start:end]), axis=0)
-                result = joint_sentences(start2, end2, start2 - end < Internal, alldata, i, temp)
-                if isinstance(result, tuple):
-                    alldata, i, LastEnd = result
+                alldata, i, LastEnd = joint_sentences(start2, end2, start2 - end < Internal, alldata, i, temp)
+
             else:
                 # 这是两句话
                 if len(alldata) > 0:
                     print(f"第{i}句话翻译完成")
                     i += 1
-                    # 处理第一句话
                     get_audio_text(alldata)
                 alldata = temp[start:end]
-                result = joint_sentences(start2, end2, start2 - end < Internal, alldata, i, temp)
-                if isinstance(result, tuple):
-                    alldata, i, LastEnd = result
+                alldata, i, LastEnd = joint_sentences(start2, end2, start2 - end < Internal, alldata, i, temp)
         
         # 清空data和temp，继续录音
         data = b''
         temp = np.array([],np.float32)
-def send_in_thread(message):
-    global ws_client, loop
-    if ws_client is None:
-        print("⚠️ ws_client 还未连接，消息丢弃", flush=True)
-        return
 
-    if loop is None:
-        print("❌ loop 为空，无法发送", flush=True)
-        return
-
-    print("✅ 准备通过 WebSocket 发送消息", flush=True)
-
-    future = asyncio.run_coroutine_threadsafe(
-        ws_client.send_json(message),
-        loop
+from fastapi.responses import StreamingResponse
+app = FastAPI()
+@app.get("/sse/subtitle")
+def sse_subtitle():
+    return StreamingResponse(
+        record(),
+        media_type="text/event-stream"
     )
-
-    # 捕获真正的异常（关键！）
-    try:
-        future.result(timeout=1)
-        print("✅ WebSocket 消息发送成功", flush=True)
-    except Exception as e:
-        print("❌ WebSocket 发送失败:", repr(e), flush=True)
-
-
-@app.on_event("startup")
-def on_startup():
-    global loop
-    loop = asyncio.get_event_loop()
-
-    t = threading.Thread(target=record, daemon=True)
-    t.start()
-uvicorn.run(app, host="0.0.0.0", port=8001)
