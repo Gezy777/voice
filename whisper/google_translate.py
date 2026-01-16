@@ -4,10 +4,10 @@ import config
 # 使用谷歌翻译网页接口进行翻译
 def google_web_translate(text, src=config.SourceLanguage, tgt=config.TargetLanguage):
     # 在linux中使用了代理，windows不需要
-    # proxies = {
-    #     "http": "http://127.0.0.1:7890",
-    #     "https": "http://127.0.0.1:7890"
-    # }
+    proxies = {
+        "http": "http://127.0.0.1:7890",
+        "https": "http://127.0.0.1:7890"
+    }
 
     url = "https://translate.googleapis.com/translate_a/single"
     params = {
@@ -23,7 +23,7 @@ def google_web_translate(text, src=config.SourceLanguage, tgt=config.TargetLangu
     }
 
     # 添加代理
-    r = requests.get(url, params=params, headers=headers, timeout=10)#, proxies=proxies)
+    r = requests.get(url, params=params, headers=headers, timeout=10, proxies=proxies)
     r.raise_for_status()
 
     data = r.json()

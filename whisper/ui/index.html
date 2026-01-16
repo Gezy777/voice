@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>实时语音字幕</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #subtitle-box {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 16px;
+      height: 60vh;
+      overflow-y: auto;
+      background: #000;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .line {
+      margin-bottom: 8px;
+    }
+
+    .time {
+      color: #888;
+      font-size: 14px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎤 实时字幕</h1>
+
+<div id="subtitle-box"></div>
+
+<script>
+  // 🔧 改成你自己的 WebSocket 地址
+  const ws = new WebSocket("ws://localhost:8001/ws");
+
+  const box = document.getElementById("subtitle-box");
+
+  ws.onopen = () => {
+    console.log("WebSocket 已连接");
+  };
+
+  ws.onmessage = (event) => {
+    /**
+     * 假设后端发的数据格式为：
+     * {
+        *  "original": "原始文本", 
+        *  "translated": "翻译文本",
+        *  "time": "时间戳"
+     * }
+     */
+    const data = JSON.parse(event.data);
+
+    const line = document.createElement("div");
+    line.className = "line";
+
+    line.innerHTML = `
+      <span class="time">[${data.time}]</span>
+      <span>${data.original}</span>
+      <span>${data.translated}</span>
+    `;
+
+    box.appendChild(line);
+
+    // 自动滚动到底部
+    box.scrollTop = box.scrollHeight;
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket 错误", err);
+  };
+
+  ws.onclose = () => {
+    console.log("WebSocket 已断开");
+  };
+</script>
+
+</body>
+</html>

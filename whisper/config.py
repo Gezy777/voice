@@ -13,7 +13,7 @@ TargetLanguage = "zh-CN"
 
 # 监听的音频设备
 # windows一般是13，linux一般是pulse
-InputDeviceIndex = 13
+InputDeviceIndex = 5
 
 # 指定翻译服务器
 SERVER_LINUX = "http://192.168.186.31:8000/translate"
