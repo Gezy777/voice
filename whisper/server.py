@@ -34,11 +34,7 @@ def translate_audio(req: AudioRequest):
     mel = whisper.log_mel_spectrogram(audio).to(device)
 
     result = whisper.decode(model, mel, options)
-
-    translated = result.text
-
     return {
         "origin": result.text,
-        "translated": translated,
         "cost": round(time.time() - start_time, 3)
     }
