@@ -58,7 +58,6 @@ def send_in_thread(message):
 def on_startup():
     global loop
     loop = asyncio.get_event_loop()
-    time.sleep(2)
 
     t = threading.Thread(target=backend, daemon=True)
     t.start()

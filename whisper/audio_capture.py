@@ -121,7 +121,7 @@ class AudioCapture:
                     self.f(self.voiceTotext.recognize_audio_local(self.alldata))
                 else:
                     self.f(self.voiceTotext.recognize_audio_server(self.alldata))
-        self.alldata = self.temp[start:end]
+            self.alldata = self.temp[start:end]
 
         print(f"这是第{self.i}句话")
         self.LastEnd = len(self.temp[end:])
