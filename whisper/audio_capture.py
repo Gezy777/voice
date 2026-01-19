@@ -13,6 +13,8 @@ def get_detect_speech():
     return vad_model, funcs[0]
 
 class AudioCapture:
+    # is_local-----whisper模型运行在本地还是服务器上
+    # f------------websocket服务端的发送函数，将结果实时发送给前端
     def __init__(self, is_local: bool, f):
         self.p = pyaudio.PyAudio()
         self.q = queue.Queue()

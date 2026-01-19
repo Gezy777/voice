@@ -1,4 +1,5 @@
 import pyaudio
+
 # 设定的说话间隔时间
 Internal = 8000
 
@@ -7,14 +8,14 @@ Internal = 8000
 VoiceToWordModel = 'tiny'
 
 # 源语言
-SourceLanguage = "en"
+SourceLanguage = "ja"
 
 # 目的语言
 TargetLanguage = "zh-CN"
 
 # 监听的音频设备
 # windows一般是13，linux一般是pulse
-InputDeviceIndex = 13
+InputDeviceIndex = 40
 
 # 指定翻译服务器
 SERVER = "http://192.168.186.31:8000/translate"
