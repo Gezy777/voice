@@ -15,7 +15,8 @@ TargetLanguage = "zh-CN"
 
 # 监听的音频设备
 # windows一般是13，linux一般是pulse
-InputDeviceIndex = 40
+# windows一般选择第二个CABLE OUTPUT设备
+InputDeviceIndex = 5
 
 # 指定翻译服务器
 SERVER = "http://192.168.186.31:8000/translate"
@@ -29,7 +30,9 @@ CHANNELS = 1
 RATE = 16000
 
 PROXY = {
-    # "http": "http://127.0.0.1:7890",
-    # "https": "http://127.0.0.1:7890"
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890"
 }
+
+IS_LOCAL = False  # 是否在本地运行翻译服务
 
