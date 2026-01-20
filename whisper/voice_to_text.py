@@ -30,6 +30,7 @@ class VoiceToText:
             "final": True,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         }
+        self.text_write_file(text)
         print("原文:" + text)
         print("翻译结果:" + translated)
         print("翻译耗时:" + str(cost) + "s")
@@ -41,17 +42,21 @@ class VoiceToText:
             json={"audio": audio_data.tolist()}
         )        
         text, cost = resp.json()["origin"], resp.json()["cost"]
-        translated = google_translate.google_web_translate(text)
+        translated = text #google_translate.google_web_translate(text)
         data = {
             "original": text,
             "translated": translated,
             "final": True,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         }
+        self.text_write_file(text)
         print("原文:" + text)
         print("翻译结果:" + translated)
         print("翻译耗时:" + str(cost) + "s")
         return data
+    def text_write_file(self, text):
+        with open(config.FileName, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
         
 
 

@@ -35,4 +35,5 @@ PROXY = {
 }
 
 IS_LOCAL = False  # 是否在本地运行翻译服务
+FileName = "voice_transcription.txt"  # 保存转录文本的文件名
 
