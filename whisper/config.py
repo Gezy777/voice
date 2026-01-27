@@ -16,11 +16,11 @@ TargetLanguage = "zh"
 # 监听的音频设备
 # windows一般是13，linux一般是pulse
 # windows一般选择第二个CABLE OUTPUT设备
-InputDeviceIndex = 5
+InputDeviceIndex = 14
 
 # Whisper模型是否运行在本地
 # False表示运行在服务器上，在服务器上运行server.py文件，同时修改下方SERVER参数
-IS_LOCAL = True
+IS_LOCAL = False
 
 # 指定翻译服务器
 SERVER = "http://192.168.186.31:8000/translate"

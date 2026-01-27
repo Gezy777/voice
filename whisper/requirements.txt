@@ -1,11 +1,10 @@
 PyQt5
-torch
 pyaudio
 numpy
 openai-whisper
-threading
 fastapi
-uvicorn
+"uvicorn[standard]"
 asyncio
 dotenv
 requests
+torchaudio
