@@ -6,3 +6,4 @@ __pycache__/
 *.bat
 TODO
 .env
+*.wav
