@@ -3,7 +3,7 @@ import queue
 import config
 import torch
 import requests
-import google_translate as translate
+import translator
 import numpy as np
 
 # 配置录音参数
@@ -41,7 +41,7 @@ def voice_to_text_server(audio_data):
         json={"audio": audio_data.tolist()}
     )
     print("原文:" + resp.json()["origin"])
-    print("翻译结果:" + translate.google_web_translate(resp.json()["translated"]))
+    print("翻译结果:" + translator.tencent_translate_api(resp.json()["translated"]))
     print("翻译耗时:" + str(resp.json()["cost"]) + "s")
 
 

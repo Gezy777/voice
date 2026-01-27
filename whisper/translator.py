@@ -26,3 +26,21 @@ def google_web_translate(text, src=config.SourceLanguage, tgt=config.TargetLangu
     data = r.json()
     return "".join([item[0] for item in data[0]])
 
+def tencent_translate_api(text, src=config.SourceLanguage, tgt=config.TargetLanguage):
+    from tencent_sign import tc3_request
+
+    resp = tc3_request(
+        service="tmt",
+        action="TextTranslate",
+        payload={
+            "SourceText": text,
+            "Source": src,
+            "Target": tgt,
+            "ProjectId": 0
+        },
+        region="ap-beijing"
+    )
+
+    return resp["Response"]["TargetText"]
+
+# print(tencent_translate_api("how are you!"))

@@ -30,6 +30,12 @@ class WebSocketClient(QWidget):
         self.message_input = QLineEdit(self)
         self.layout.addWidget(self.message_input)
 
+        # 连接按钮
+        self.connect_button = QPushButton("建立连接", self)
+        self.layout.addWidget(self.connect_button)
+        self.connect_button.clicked.connect(self.connect_ws)
+
+
         # 发送按钮
         self.send_button = QPushButton("发送", self)
         self.layout.addWidget(self.send_button)
@@ -45,16 +51,23 @@ class WebSocketClient(QWidget):
         self.send_button.clicked.connect(self.send_message)
 
         # 连接到 WebSocket 服务器
-        self.connect_ws()
+        # self.connect_ws()
 
     def connect_ws(self):
         """ 连接到 WebSocket 服务器 """
+        if self.ws.state() == 3:
+            self.append_to_history("[!] 已经连接，无需重复连接")
+            return
+
         self.ws.open(QUrl("ws://localhost:8001/ws"))
         self.append_to_history("[✓] 正在连接 WebSocket...")
 
+
     def on_connected(self):
-        """ WebSocket 连接成功 """
         self.append_to_history("[✓] WebSocket 已连接")
+        self.connect_button.setEnabled(False)
+        self.connect_button.setText("已连接")
+
 
     def on_message_received(self, message):
         """ 接收到消息 """
@@ -63,12 +76,16 @@ class WebSocketClient(QWidget):
         self.realtime_log.setText(f"{message}")  # 实时显示
 
     def on_error(self, error):
-        """ WebSocket 错误 """
         self.append_to_history(f"[✗] WebSocket 错误: {error}")
+        self.connect_button.setEnabled(True)
+        self.connect_button.setText("建立连接")
+
 
     def on_disconnected(self):
         """ WebSocket 断开连接 """
         self.append_to_history("[×] WebSocket 已断开连接")
+        self.connect_button.setEnabled(True)
+        self.connect_button.setText("建立连接")
 
     def send_message(self):
         """ 发送消息 """

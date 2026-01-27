@@ -4,11 +4,11 @@ from fastapi import FastAPI, WebSocket
 import uvicorn
 import asyncio
 import audio_capture
-import time
+import config
 
 def backend():
     # 启动 FastAPI 应用
-    ac = audio_capture.AudioCapture(True, send_in_thread)
+    ac = audio_capture.AudioCapture(config.IS_LOCAL, send_in_thread)
     ac.start_capture()
 
 app = FastAPI()

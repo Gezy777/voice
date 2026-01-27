@@ -3,7 +3,7 @@ import config
 import whisper
 import requests
 import time
-import google_translate
+import translator
 
 class VoiceToText:
     def __init__(self, is_local):
@@ -23,7 +23,7 @@ class VoiceToText:
             fp16=torch.cuda.is_available()
         ))
         text, cost = result.text, round(time.time() - start, 3)
-        translated = google_translate.google_web_translate(text)
+        translated = translator.tencent_translate_api(text)
         data = {
             "original": text,
             "translated": translated,
@@ -41,7 +41,7 @@ class VoiceToText:
             json={"audio": audio_data.tolist()}
         )        
         text, cost = resp.json()["origin"], resp.json()["cost"]
-        translated = google_translate.google_web_translate(text)
+        translated = translator.tencent_translate_api(text)
         data = {
             "original": text,
             "translated": translated,

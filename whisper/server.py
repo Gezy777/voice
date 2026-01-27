@@ -5,7 +5,8 @@ import numpy as np
 import whisper
 import config
 from fastapi import FastAPI
-from pydantic import BaseModel
+# from pydantic import BaseModel
+import uvicorn
 
 app = FastAPI()
 
@@ -20,11 +21,11 @@ options = whisper.DecodingOptions(
     fp16=torch.cuda.is_available()
 )
 
-class AudioRequest(BaseModel):
-    audio: list[float]   # 16kHz mono PCM
+# class AudioRequest(BaseModel):
+#     audio: list[float]   # 16kHz mono PCM
 
 @app.post("/translate")
-def translate_audio(req: AudioRequest):
+def translate_audio(req):#: AudioRequest):
     start_time = time.time()
 
     audio = np.array(req.audio, dtype=np.float32)
@@ -38,3 +39,5 @@ def translate_audio(req: AudioRequest):
         "origin": result.text,
         "cost": round(time.time() - start_time, 3)
     }
+
+uvicorn.run(app, host="0.0.0.0", port=8000)
